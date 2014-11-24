@@ -1,6 +1,5 @@
 <?php
 
-use paslandau\Benchmark\Benchmark;
 use paslandau\ComparisonUtility\ArrayComperator;
 use paslandau\ComparisonUtility\ComperatorInterface;
 
@@ -56,7 +55,7 @@ class ArrayComperatorTest extends PHPUnit_Framework_TestCase {
                     [
                         $foo,
                         [
-                            "key11" => "foo",
+                            "key11" => $foo,
                             "key12" => "bar",
                             "key13" => "baz"
                         ],
@@ -68,7 +67,7 @@ class ArrayComperatorTest extends PHPUnit_Framework_TestCase {
                         $bar,
                         [
                             "key21" => "bar",
-                            "key22" => "foo",
+                            "key22" => $foo,
                             "key23" => "baz"
                         ],
                         1
@@ -156,7 +155,8 @@ class ArrayComperatorTest extends PHPUnit_Framework_TestCase {
         $expecteds["contains-2-multi-flipped-contains"] = true;
 
         $ignoreOrder = true;
-        $c = new ArrayComperator(ArrayComperator::COMPARE_FUNCTION_EQUALS,null,null,$ignoreOrder,null);
+        $canContainMixedTypes = true;
+        $c = new ArrayComperator(ArrayComperator::COMPARE_FUNCTION_EQUALS,false,$ignoreOrder,$canContainMixedTypes,null);
         $this->evaluate($c,$expecteds,__METHOD__);
 
 
@@ -165,13 +165,10 @@ class ArrayComperatorTest extends PHPUnit_Framework_TestCase {
         foreach($base_expecteds as $id => $val){
             $expecteds[$id."-diff-keys"] = false;
         }
-        $cmpKeys = function($key1, $key2){
-            return $key1 == $key2;
-        };
         ## edge cases
         $expecteds["contains-2-multi-contains-mixed-types"] = false;
         $expecteds["contains-2-multi-flipped-contains"] = false;
-        $c = new ArrayComperator(ArrayComperator::COMPARE_FUNCTION_EQUALS,null,$cmpKeys,$ignoreOrder,null);
+        $c = new ArrayComperator(ArrayComperator::COMPARE_FUNCTION_EQUALS,true,$ignoreOrder,$canContainMixedTypes,null);
         $this->evaluate($c,$expecteds,__METHOD__." force key equality");
     }
 
@@ -206,7 +203,8 @@ class ArrayComperatorTest extends PHPUnit_Framework_TestCase {
         $expecteds["contains-2-multi-contains-mixed-types"] = false;
         $expecteds["contains-2-multi-flipped-contains"] = false;
         $ignoreOrder = false;
-        $c = new ArrayComperator(ArrayComperator::COMPARE_FUNCTION_EQUALS,null,null,$ignoreOrder,null);
+        $canContainMixedTypes = true;
+        $c = new ArrayComperator(ArrayComperator::COMPARE_FUNCTION_EQUALS,false,$ignoreOrder,$canContainMixedTypes,null);
         $this->evaluate($c,$expecteds,__METHOD__);
 
 
@@ -215,12 +213,9 @@ class ArrayComperatorTest extends PHPUnit_Framework_TestCase {
         foreach($base_expecteds as $id => $val){
             $expecteds[$id."-diff-keys"] = false;
         }
-        $cmpKeys = function($key1, $key2){
-            return $key1 == $key2;
-        };
         $expecteds["contains-2-multi-contains-mixed-types"] = false;
         $expecteds["contains-2-multi-flipped-contains"] = false;
-        $c = new ArrayComperator(ArrayComperator::COMPARE_FUNCTION_EQUALS,null,$cmpKeys,$ignoreOrder,null);
+        $c = new ArrayComperator(ArrayComperator::COMPARE_FUNCTION_EQUALS,true,$ignoreOrder,$canContainMixedTypes,null);
         $this->evaluate($c,$expecteds,__METHOD__." force key equality");
     }
 
@@ -254,7 +249,8 @@ class ArrayComperatorTest extends PHPUnit_Framework_TestCase {
         $expecteds["contains-2-multi-contains-mixed-types"] = true;
         $expecteds["contains-2-multi-flipped-contains"] = true;
         $ignoreOrder = true;
-        $c = new ArrayComperator(ArrayComperator::COMPARE_FUNCTION_CONTAINS,null,null,$ignoreOrder,null);
+        $canContainMixedTypes = true;
+        $c = new ArrayComperator(ArrayComperator::COMPARE_FUNCTION_CONTAINS,false,$ignoreOrder,$canContainMixedTypes,null);
         $this->evaluate($c,$expecteds,__METHOD__);
 
 
@@ -265,10 +261,7 @@ class ArrayComperatorTest extends PHPUnit_Framework_TestCase {
         }
         $expecteds["contains-2-multi-contains-mixed-types"] = false;
         $expecteds["contains-2-multi-flipped-contains"] = false; // because first level arrays have different order -- hence different keys
-        $cmpKeys = function($key1, $key2){
-            return $key1 == $key2;
-        };
-        $c = new ArrayComperator(ArrayComperator::COMPARE_FUNCTION_CONTAINS,null,$cmpKeys,$ignoreOrder,null);
+        $c = new ArrayComperator(ArrayComperator::COMPARE_FUNCTION_CONTAINS,true,$canContainMixedTypes,null);
         $this->evaluate($c,$expecteds,__METHOD__." force key equality");
     }
 
@@ -302,7 +295,8 @@ class ArrayComperatorTest extends PHPUnit_Framework_TestCase {
         $expecteds["contains-2-multi-contains-mixed-types"] = false;
         $expecteds["contains-2-multi-flipped-contains"] = false;
         $ignoreOrder = false;
-        $c = new ArrayComperator(ArrayComperator::COMPARE_FUNCTION_CONTAINS,null,null,$ignoreOrder,null);
+        $canContainMixedTypes = true;
+        $c = new ArrayComperator(ArrayComperator::COMPARE_FUNCTION_CONTAINS,false,$ignoreOrder,$canContainMixedTypes,null);
         $this->evaluate($c,$expecteds,__METHOD__);
 
 
@@ -313,50 +307,70 @@ class ArrayComperatorTest extends PHPUnit_Framework_TestCase {
         }
         $expecteds["contains-2-multi-contains-mixed-types"] = false;
         $expecteds["contains-2-multi-flipped-contains"] = false;
-        $cmpKeys = function($key1, $key2){
-            return $key1 == $key2;
-        };
-        $c = new ArrayComperator(ArrayComperator::COMPARE_FUNCTION_CONTAINS,null,$cmpKeys,$ignoreOrder,null);
+        $c = new ArrayComperator(ArrayComperator::COMPARE_FUNCTION_CONTAINS,true,$ignoreOrder,$canContainMixedTypes,null);
         $this->evaluate($c,$expecteds,__METHOD__." force key equality");
     }
 
 //    public function test_Performance(){
-//        $arr1 = range(0,500);
-//        $arr2 = range(0,500);
-//        $params = [$arr1,$arr2];
 //
-//        $c = new ArrayComperator(ArrayComperator::COMPARE_FUNCTION_EQUALS);
+//        $revFill = function (&$arr, $level, $items,$rev = false) use(&$revFill) {
+//            $level--;
+//                for ($i = 0; $i < $items; $i++) {
+//                    $inner = [];
+//                    if ($level > 1) {
+//                        $revFill($inner, $level, $items, $rev);
+//                    }else{
+//                        $inner = range(0,$items-1);
+//                        if($rev){
+//                            shuffle($inner);
+////                            $inner = array_reverse($inner);
+//                        }
+//                    }
+//                    $arr[$i] = $inner;
+//                }
+//        };
+//        $level = 3;
+//        $items = 25;
+//        $arr = [];
+//        $revFill($arr,$level,$items);
+//        $arr2 = [];
+//        $revFill($arr2,$level,$items,true);
+//        $params = [$arr,$arr2];
 //
-//        $func = function($v1,$v2) {
-//            if ($v1 == $v2) return 0;
-//            return ($v1 > $v2) ? 1 : -1;
+//        $ignoreOrder = true;
+//        $keysMustMatch = false;
+//
+//        $run = function($ignoreOrder,$keysMustMatch,$params) {
+//            echo "Ignore order: ".($ignoreOrder?"true":"false")."\n";
+//            echo "Keys must match: ".($keysMustMatch?"true":"false")."\n";
+//
+//            $c = new ArrayComperator(ArrayComperator::COMPARE_FUNCTION_EQUALS, $keysMustMatch, $ignoreOrder);
+//            $keyCmp = null;
+//            if ($keysMustMatch) {
+//                $keyCmp = function ($k1, $k2) {
+//                    return $k1 === $k2;
+//                };
+//            }
+//            $c2 = new ArrayComperator(ArrayComperator::COMPARE_FUNCTION_EQUALS, null, $keyCmp, $ignoreOrder);
+//
+//            $tests = [
+//                "performance" => function ($params) use ($c) {
+//                    echo "performance " . $c->compare($params[0], $params[1]) . "\n";
+//                },
+//                "normal" => function ($params) use ($c2) {
+//                    echo "normal " . $c2->compare($params[0], $params[1]) . "\n";
+//                },
+//            ];
+//
+//            $runs = 1;
+//            $b = new Benchmark($tests, $runs);
+//            echo($b->run($params))."\n\n\n";
 //        };
 //
-//        $tests = [
-//            "===" => function($params){
-//                return $params[0] === $params[1];
-//            },
-//            "==" => function($params){
-//                return $params[0] == $params[1];
-//            },
-//            "my" => function($params) use ($c){
-//                return $c->compare($params[0],$params[1]);
-//            },
-//            "diff" => function($params) use ($c){
-//                return count(array_diff($params[0],$params[1])) === 0;
-//            },
-//            "udiff" => function($params) use ($func){
-//                return count(array_udiff($params[0],$params[1],$func)) === 0;
-//            },
-//            "uadiff" => function($params) use ($func){
-//                return count(array_udiff_uassoc($params[0],$params[1],$func,$func)) === 0;
-//            },
-//        ];
-//
-//        $runs = 2;
-//        $b = new Benchmark($tests,$runs);
-//        echo($b->run($params));
-//
+//        $run(true,true,$params);
+//        $run(true,false,$params);
+//        $run(false,true,$params);
+//        $run(false,false,$params);
 //    }
 }
  

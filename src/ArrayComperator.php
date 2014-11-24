@@ -1,8 +1,6 @@
 <?php
   namespace paslandau\ComparisonUtility;
 
-use paslandau\Benchmark\Benchmark;
-
 class ArrayComperator extends AbstractBaseComperator{
     const COMPARE_FUNCTION_EQUALS = "equals";
     const COMPARE_FUNCTION_CONTAINS = "contains";
@@ -13,14 +11,29 @@ class ArrayComperator extends AbstractBaseComperator{
 	private $function;
 
     /**
-     * @var callable
+     * @var callable|null
      */
     private $compareValuesFn;
 
     /**
-     * @var callable
+     * @var callable|null
      */
     private $compareKeysFn;
+
+    /**
+     * @var callable|null
+     */
+    private $sortFn;
+
+    /**
+     * @var
+     */
+    private $canContainMixedTypes;
+
+    /**
+     * @var
+     */
+    private $keysMustMatch;
 
     /**
      * @var bool
@@ -30,13 +43,12 @@ class ArrayComperator extends AbstractBaseComperator{
     /**
      *
      * @param string $function . Member of self::COMPARE_FUNCTION_*
-     * @param callable $compareValuesFn [optional]. Default: null (Uses "==" as compare operation for elements).
-     * @param callable $compareKeysFn [optional]. Default: null (Does not compare keys => returns always true).
-     * @param bool $ignoreOrder [optional]. Default: true.
+     * @param bool $keysMustMatch [optional]. Default: true.
+     * @param bool $ignoreOrder [optional]. Default: false.
+     * @param bool $canContainMixedTypes [optional]. Default: false.
      * @param bool $canBeNull [optional]. Default: false.
-     * @internal param bool $ignoreCase [optional]. Default: false.
      */
-	public function __construct($function, callable $compareValuesFn = null, callable $compareKeysFn = null, $ignoreOrder = null, $canBeNull = null){
+	public function __construct($function, $keysMustMatch = null, $ignoreOrder = null, $canContainMixedTypes = null, $canBeNull = null){
         parent::__construct($canBeNull);
 
 		$constants = (new \ReflectionClass(__CLASS__))->getConstants();
@@ -44,23 +56,21 @@ class ArrayComperator extends AbstractBaseComperator{
 			throw new \InvalidArgumentException("'$function' unknown. Possible values: ".implode(", ",$constants));
 		}
 		$this->function = $function;
-        if($compareValuesFn === null) {
-            $compareValuesFn = function ($obj1, $obj2){
-                // gettype($obj1) == gettype($obj2) &&
-                return $obj1 === $obj2;
-            };
+        if($keysMustMatch === null) {
+            $keysMustMatch = true;
         }
-        $this->compareValuesFn = $compareValuesFn;
-        if($compareKeysFn === null) {
-            $compareKeysFn = function ($obj1, $obj2){
-                return true;
-            };
-        }
-        $this->compareKeysFn = $compareKeysFn;
+        $this->keysMustMatch = $keysMustMatch;
         if($ignoreOrder === null) {
-            $ignoreOrder = true;
+            $ignoreOrder = false;
         }
         $this->ignoreOrder = $ignoreOrder;
+        $this->compareValuesFn = null;
+        $this->compareKeysFn = null;
+        $this->sortFn = null;
+        if($canContainMixedTypes === null) {
+            $canContainMixedTypes = false;
+        }
+        $this->canContainMixedTypes = $canContainMixedTypes;
 	}
 
 	
@@ -79,8 +89,72 @@ class ArrayComperator extends AbstractBaseComperator{
             return true;
         }
 
+        // shortcuts
+        if($this->function === self::COMPARE_FUNCTION_EQUALS) {
+            if ($this->compareValuesFn === null && $this->keysMustMatch === true && $this->compareKeysFn === null && $this->ignoreOrder === false) {
+                return $compareValue === $expectedValue;
+            }
+            if ($this->compareValuesFn === null && $this->compareKeysFn === null && $this->ignoreOrder === true) {
+                $sortFn = $this->sortFn;
+                if ($sortFn === null) {
+                    $sortFn = function ($v1, $v2) {
+                        if ($v1 === $v2) {
+                            return 0;
+                        }
+                        $v1t = gettype($v1);
+                        $v2t = gettype($v2);
+                        if ($v1t !== $v2t) {
+                            return $v1t > $v2t ? 1 : -1;
+                        } else {
+                            return $v1 > $v2 ? 1 : -1;
+                        }
+                    };
+                }
+
+                $recSort = function (&$arr) use (&$recSort, $sortFn) {
+                    foreach ($arr as &$a) {
+                        if (is_array($a)) {
+                            $recSort($a);
+                        }
+                    }
+
+                    if($this->canContainMixedTypes){
+                        if($this->keysMustMatch === false) {
+                            usort($arr, $sortFn);
+                        }else{
+                            uasort($arr, $sortFn);
+                        }
+                    }else {
+                        if ($this->keysMustMatch === false) {
+                            sort($arr);
+                        } else {
+                            asort($arr);
+                        }
+                    }
+                };
+                $recSort($compareValue);
+                $recSort($expectedValue);
+                return $compareValue === $expectedValue;
+            }
+        }
+
+        $identity = function ($obj1, $obj2){
+            return $obj1 === $obj2;
+        };
+
         $cmpValueFn = $this->compareValuesFn;
+        if($cmpValueFn === null) {
+            $cmpValueFn = $identity;
+        }
+
         $cmpKeyFn = $this->compareKeysFn;
+        if($cmpKeyFn === null) {
+            if($this->keysMustMatch === true) {
+                $cmpKeyFn = $identity;
+            }else{
+                $cmpKeyFn = function () { return true; };
+            }
+        }
 
         foreach($compareValue as $ckey => $cvalue){
             $found = false;
@@ -115,5 +189,119 @@ class ArrayComperator extends AbstractBaseComperator{
         }
         return true;
 	}
+
+    /**
+     * @return mixed
+     */
+    public function getCanContainMixedTypes()
+    {
+        return $this->canContainMixedTypes;
+    }
+
+    /**
+     * @param mixed $canContainMixedTypes
+     */
+    public function setCanContainMixedTypes($canContainMixedTypes)
+    {
+        $this->canContainMixedTypes = $canContainMixedTypes;
+    }
+
+    /**
+     * @return callable|null
+     */
+    public function getCompareKeysFn()
+    {
+        return $this->compareKeysFn;
+    }
+
+    /**
+     * @param callable|null $compareKeysFn
+     */
+    public function setCompareKeysFn($compareKeysFn)
+    {
+        $this->compareKeysFn = $compareKeysFn;
+    }
+
+    /**
+     * @return callable|null
+     */
+    public function getCompareValuesFn()
+    {
+        return $this->compareValuesFn;
+    }
+
+    /**
+     * @param callable|null $compareValuesFn
+     */
+    public function setCompareValuesFn($compareValuesFn)
+    {
+        $this->compareValuesFn = $compareValuesFn;
+    }
+
+    /**
+     * @return string
+     */
+    public function getFunction()
+    {
+        return $this->function;
+    }
+
+    /**
+     * @param string $function
+     */
+    public function setFunction($function)
+    {
+        $this->function = $function;
+    }
+
+    /**
+     * @return boolean
+     */
+    public function isIgnoreOrder()
+    {
+        return $this->ignoreOrder;
+    }
+
+    /**
+     * @param boolean $ignoreOrder
+     */
+    public function setIgnoreOrder($ignoreOrder)
+    {
+        $this->ignoreOrder = $ignoreOrder;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getKeysMustMatch()
+    {
+        return $this->keysMustMatch;
+    }
+
+    /**
+     * @param mixed $keysMustMatch
+     */
+    public function setKeysMustMatch($keysMustMatch)
+    {
+        $this->keysMustMatch = $keysMustMatch;
+    }
+
+    /**
+     * @return callable|null
+     */
+    public function getSortFn()
+    {
+        return $this->sortFn;
+    }
+
+    /**
+     * @param callable|null $sortFn
+     */
+    public function setSortFn($sortFn)
+    {
+        $this->sortFn = $sortFn;
+    }
+
+
 }
 ?>
