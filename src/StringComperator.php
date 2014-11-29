@@ -1,9 +1,9 @@
 <?php
   namespace paslandau\ComparisonUtility;
 
-use paslandau\Utility\StringUtil\StringUtil;
+use paslandau\DataFiltering\Util\StringUtil;
 
-class StringComperator extends AbstractBaseComperator{
+class StringComperator extends AbstractBaseComperator implements ComperatorInterface{
 	const COMPARE_FUNCTION_STARTS_WITH = "startsWith";
 	const COMPARE_FUNCTION_ENDS_WITH = "endsWith";
 	const COMPARE_FUNCTION_CONTAINS = "contains";
@@ -25,10 +25,10 @@ class StringComperator extends AbstractBaseComperator{
 	 * 
 	 * @param string $function. Member of self::COMPARE_FUNCTION_*
 	 * @param bool $ignoreCase [optional]. Default: false.
-	 * @param bool $canBeNull [optional]. Default: false.
+	 * @param string $valueToTransformNullTo [optional]. Default: false.
 	 */
-	public function __construct($function, $ignoreCase = null, $canBeNull = null){
-        parent::__construct($canBeNull);
+	public function __construct($function, $ignoreCase = null, $valueToTransformNullTo = null){
+        parent::__construct($valueToTransformNullTo);
 
 		$constants = (new \ReflectionClass(__CLASS__))->getConstants();
 		if(!in_array($function, $constants)){
@@ -53,8 +53,10 @@ class StringComperator extends AbstractBaseComperator{
 	 * @return bool. true if $expectedValue compares to $compareValue according to $this->function.
 	 */
 	public function compare($compareValue = null, $expectedValue = null){
-        if(parent::compare($compareValue, $expectedValue)){
-            return true;
+        parent::updateNullValues($compareValue, $expectedValue);
+
+        if($compareValue === null || $expectedValue === null){ // not defined for strings
+            return false;
         }
 		
 		switch($this->function){

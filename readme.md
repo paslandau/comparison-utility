@@ -1,7 +1,7 @@
 #ComparisonUtility
 [![Build Status](https://travis-ci.org/paslandau/ComparisonUtility.svg?branch=master)](https://travis-ci.org/paslandau/ComparisonUtility)
 
-Library to extends PHP core functions by common (missing) array functions
+Collection of different common comparison classes/functions
 
 ##Description
 [todo]

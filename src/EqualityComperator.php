@@ -1,7 +1,7 @@
 <?php
 namespace paslandau\ComparisonUtility;
 
-class EqualityComperator extends AbstractBaseComperator
+class EqualityComperator extends AbstractBaseComperator implements ComperatorInterface
 {
     const COMPARE_FUNCTION_EQUALITY = "==";
     const COMPARE_FUNCTION_IDENTITY = "===";
@@ -16,11 +16,11 @@ class EqualityComperator extends AbstractBaseComperator
 
     /**
      * @param string $function . Member of self::COMPARE_FUNCTION_*
-     * @param bool $canBeNull [optional]. Default: false.
+     * @param mixed $valueToTransformNullTo [optional]. Default: false.
      */
-    public function __construct($function, $canBeNull = null)
+    public function __construct($function, $valueToTransformNullTo = null)
     {
-        parent::__construct($canBeNull);
+        parent::__construct($valueToTransformNullTo);
         $constants = (new \ReflectionClass(__CLASS__))->getConstants();
         if (!in_array($function, $constants)) {
             throw new \InvalidArgumentException("'$function' unknown. Possible values: " . implode(", ", $constants));
@@ -36,9 +36,7 @@ class EqualityComperator extends AbstractBaseComperator
      */
     public function compare($compareValue = null, $expectedValue = null)
     {
-        if(parent::compare($compareValue,$expectedValue)){
-            return true;
-        }
+        parent::updateNullValues($compareValue, $expectedValue);
 
         switch ($this->function) {
             case self::COMPARE_FUNCTION_EQUALITY:

@@ -4,7 +4,21 @@
 use paslandau\ComparisonUtility\NumberComperator;
 
 class NumberComperatorTest extends PHPUnit_Framework_TestCase{
-	
+
+    public function test_null(){
+        $c = new NumberComperator(NumberComperator::COMPARE_FUNCTION_EQUALS);
+        $newValue = 0;
+        $msg = "null should always return false for number comparison (unless default value is defined)";
+        $this->assertFalse($c->compare(null,null), $msg);
+        $this->assertFalse($c->compare(null,$newValue), $msg);
+        $this->assertFalse($c->compare($newValue,null), $msg);
+        $c = new NumberComperator(NumberComperator::COMPARE_FUNCTION_EQUALS,$newValue);
+        $msg = "null should be transformed to $newValue and return true";
+        $this->assertTrue($c->compare(null,null), $msg);
+        $this->assertTrue($c->compare(null,$newValue), $msg);
+        $this->assertTrue($c->compare($newValue,null), $msg);
+    }
+
 	public function testNumberComperatorLowerLower()
 	{
 		$c = new NumberComperator(NumberComperator::COMPARE_FUNCTION_LOWER);

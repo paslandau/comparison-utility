@@ -2,38 +2,34 @@
 
 namespace paslandau\ComparisonUtility;
 
-abstract class AbstractBaseComperator implements ComperatorInterface{
-
-    private $canBeNull;
+abstract class AbstractBaseComperator{
 
     /**
-     * @param bool $canBeNull [optional]. Default: false.
+     * @var mixed|null
      */
-    function __construct($canBeNull = null)
+    private $valueToTransformNullTo;
+
+    /**
+     * @param mixed|null $valueToTransformNullTo [optional]. Default: null.
+     */
+    function __construct($valueToTransformNullTo = null)
     {
-        if($canBeNull === null) {
-            $canBeNull = false;
-        }
-        $this->canBeNull = $canBeNull;
+        $this->valueToTransformNullTo = $valueToTransformNullTo;
     }
 
 
     /**
-     * Compares $obj1 to $obj2 and returns true or false.
-     * Implementing classed should provide a suitable comparison function
      * @param mixed $obj1
      * @param mixed $obj2
-     * @return bool
      */
-    public function compare($obj1 = null, $obj2= null)
+    public function updateNullValues(&$obj1 = null, &$obj2= null)
     {
-        if(($obj1 === null || $obj2 === null)){
-            if($this->canBeNull) {
-                return true;
-            }
-            throw new \InvalidArgumentException("Arguments must not be null!");
+        if($obj1 === null){
+            $obj1 = $this->valueToTransformNullTo;
         }
-        return false;
+        if($obj2 === null){
+            $obj2 = $this->valueToTransformNullTo;
+        }
     }
 
 } 

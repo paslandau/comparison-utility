@@ -1,9 +1,9 @@
 <?php
   namespace paslandau\ComparisonUtility;
   
-use paslandau\Utility\StringUtil;
+use paslandau\DataFiltering\Util\StringUtil;
 
-class NumberComperator extends AbstractBaseComperator{
+class NumberComperator extends AbstractBaseComperator implements ComperatorInterface{
 	const COMPARE_FUNCTION_LOWER = "<";
 	const COMPARE_FUNCTION_LOWER_EQUALS= "<=";
 	const COMPARE_FUNCTION_EQUALS = "=";
@@ -17,11 +17,11 @@ class NumberComperator extends AbstractBaseComperator{
 	
 	/**
      * @param string $function . Member of self::COMPARE_FUNCTION_*
-     * @param bool $canBeNull [optional]. Default: false.
+     * @param int|double|float $valueToTransformNullTo [optional]. Default: false.
 	 */
-	public function __construct($function, $canBeNull = null)
+	public function __construct($function, $valueToTransformNullTo = null)
     {
-        parent::__construct($canBeNull);
+        parent::__construct($valueToTransformNullTo);
 		$constants = (new \ReflectionClass(__CLASS__))->getConstants();
 		if(!in_array($function, $constants)){
 			throw new \InvalidArgumentException("'$function' unknown. Possible values: ".implode(", ",$constants));
@@ -40,8 +40,10 @@ class NumberComperator extends AbstractBaseComperator{
      * @throws \InvalidArgumentException if arguments are not numeric
      */
 	public function compare($compareValue = null, $expectedValue = null) {
-        if(parent::compare($compareValue,$expectedValue)){
-            return true;
+        parent::updateNullValues($compareValue, $expectedValue);
+
+        if($compareValue === null || $expectedValue === null){ // not defined for numbers
+            return false;
         }
 
 		if(!is_numeric($compareValue) || !is_numeric($expectedValue)){

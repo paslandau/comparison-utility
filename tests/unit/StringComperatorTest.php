@@ -3,7 +3,21 @@
 use paslandau\ComparisonUtility\StringComperator;
 
 class StringComperatorTest extends PHPUnit_Framework_TestCase{
-	
+
+    public function test_null(){
+        $c = new StringComperator(StringComperator::COMPARE_FUNCTION_EQUALS);
+        $newValue = "foo";
+        $msg = "null should always return false for string comparison (unless default value is defined)";
+        $this->assertFalse($c->compare(null,null), $msg);
+        $this->assertFalse($c->compare(null,$newValue), $msg);
+        $this->assertFalse($c->compare($newValue,null), $msg);
+        $c = new StringComperator(StringComperator::COMPARE_FUNCTION_EQUALS,null,$newValue);
+        $msg = "null should be transformed to '$newValue' and return true";
+        $this->assertTrue($c->compare(null,null), $msg);
+        $this->assertTrue($c->compare(null,$newValue), $msg);
+        $this->assertTrue($c->compare($newValue,null), $msg);
+    }
+
 	public function testStringComperatorContainsFalse()
 	{
 		$c = new StringComperator(StringComperator::COMPARE_FUNCTION_CONTAINS);

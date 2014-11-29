@@ -33,6 +33,20 @@ class EqualityComperatorTest extends PHPUnit_Framework_TestCase{
             $this->assertFalse($res,$msg);
         }
     }
+    public function test_null(){
+        $c = new EqualityComperator(EqualityComperator::COMPARE_FUNCTION_EQUALITY);
+        $newValue = "foo";
+        $msg = "null should return false for equality comparison (unless default value is defined or both values are null)";
+        $this->assertTrue($c->compare(null,null), $msg);
+        $this->assertFalse($c->compare(null,$newValue), $msg);
+        $this->assertFalse($c->compare($newValue,null), $msg);
+        $c = new EqualityComperator(EqualityComperator::COMPARE_FUNCTION_EQUALITY,$newValue);
+        $msg = "null should be transformed to 'foo' and return true";
+        $this->assertTrue($c->compare(null,null), $msg);
+        $this->assertTrue($c->compare(null,$newValue), $msg);
+        $this->assertTrue($c->compare($newValue,null), $msg);
+    }
+
 
     public function testIdentityTrue()
     {

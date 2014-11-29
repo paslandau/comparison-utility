@@ -311,6 +311,20 @@ class ArrayComperatorTest extends PHPUnit_Framework_TestCase {
         $this->evaluate($c,$expecteds,__METHOD__." force key equality");
     }
 
+    public function test_null(){
+        $newValue = [];
+        $c = new ArrayComperator(ArrayComperator::COMPARE_FUNCTION_EQUALS);
+        $msg = "null should always return false for array comparison (unless default value is defined)";
+        $this->assertFalse($c->compare(null,null), $msg);
+        $this->assertFalse($c->compare(null,$newValue), $msg);
+        $this->assertFalse($c->compare($newValue,null), $msg);
+        $c = new ArrayComperator(ArrayComperator::COMPARE_FUNCTION_EQUALS,null,null,null,$newValue);
+        $msg = "null should be transformed to [] and return true";
+        $this->assertTrue($c->compare(null,null), $msg);
+        $this->assertTrue($c->compare(null,$newValue), $msg);
+        $this->assertTrue($c->compare($newValue,null), $msg);
+    }
+
 //    public function test_Performance(){
 //
 //        $revFill = function (&$arr, $level, $items,$rev = false) use(&$revFill) {

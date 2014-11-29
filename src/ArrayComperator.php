@@ -1,7 +1,7 @@
 <?php
   namespace paslandau\ComparisonUtility;
 
-class ArrayComperator extends AbstractBaseComperator{
+class ArrayComperator extends AbstractBaseComperator implements ComperatorInterface{
     const COMPARE_FUNCTION_EQUALS = "equals";
     const COMPARE_FUNCTION_CONTAINS = "contains";
 	
@@ -46,10 +46,10 @@ class ArrayComperator extends AbstractBaseComperator{
      * @param bool $keysMustMatch [optional]. Default: true.
      * @param bool $ignoreOrder [optional]. Default: false.
      * @param bool $canContainMixedTypes [optional]. Default: false.
-     * @param bool $canBeNull [optional]. Default: false.
+     * @param array $valueToTransformNullTo [optional]. Default: false.
      */
-	public function __construct($function, $keysMustMatch = null, $ignoreOrder = null, $canContainMixedTypes = null, $canBeNull = null){
-        parent::__construct($canBeNull);
+	public function __construct($function, $keysMustMatch = null, $ignoreOrder = null, $canContainMixedTypes = null, $valueToTransformNullTo = null){
+        parent::__construct($valueToTransformNullTo);
 
 		$constants = (new \ReflectionClass(__CLASS__))->getConstants();
 		if(!in_array($function, $constants)){
@@ -85,8 +85,10 @@ class ArrayComperator extends AbstractBaseComperator{
 	 * @return bool. true if $expectedValue compares to $compareValue according to $this->function.
 	 */
 	public function compare($compareValue = null, $expectedValue = null){
-        if(parent::compare($compareValue, $expectedValue)){
-            return true;
+        parent::updateNullValues($compareValue, $expectedValue);
+
+        if($compareValue === null || $expectedValue === null){ // not defined for arrays
+            return false;
         }
 
         // shortcuts
