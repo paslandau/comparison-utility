@@ -1,3 +1,7 @@
+## 0.1.0
+
+ - changed package name from ComparisonUtility to comparison-utility
+
 ###0.0.2
 
 - removed slower ArrayComperator class

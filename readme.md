@@ -1,5 +1,5 @@
-#ComparisonUtility
-[![Build Status](https://travis-ci.org/paslandau/ComparisonUtility.svg?branch=master)](https://travis-ci.org/paslandau/ComparisonUtility)
+#comparison-utility
+[![Build Status](https://travis-ci.org/paslandau/comparison-utility.svg?branch=master)](https://travis-ci.org/paslandau/comparison-utility)
 
 Collection of different common comparison classes/functions
 
@@ -12,7 +12,7 @@ Collection of different common comparison classes/functions
 
 ##Installation
 
-The recommended way to install ComparisonUtility is through [Composer](http://getcomposer.org/).
+The recommended way to install comparison-utility is through [Composer](http://getcomposer.org/).
 
     curl -sS https://getcomposer.org/installer | php
 
@@ -22,11 +22,11 @@ Next, update your project's composer.json file to include ComparisonUtility:
         "repositories": [
             {
                 "type": "git",
-                "url": "https://github.com/paslandau/ComparisonUtility.git"
+                "url": "https://github.com/paslandau/comparison-utility.git"
             }
         ],
         "require": {
-             "paslandau/ComparisonUtility": "~0"
+             "paslandau/comparison-utility": "~0"
         }
     }
 
