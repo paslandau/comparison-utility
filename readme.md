@@ -19,14 +19,10 @@ The recommended way to install comparison-utility is through [Composer](http://g
 Next, update your project's composer.json file to include ComparisonUtility:
 
     {
-        "repositories": [
-            {
-                "type": "git",
-                "url": "https://github.com/paslandau/comparison-utility.git"
-            }
-        ],
+        "repositories": [ { "type": "composer", "url": "http://packages.myseosolution.de/"} ],
+        "minimum-stability": "dev",
         "require": {
-             "paslandau/comparison-utility": "~0"
+             "paslandau/comparison-utility": "dev-master"
         }
     }
 
