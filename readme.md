@@ -16,7 +16,7 @@ The recommended way to install comparison-utility is through [Composer](http://g
 
     curl -sS https://getcomposer.org/installer | php
 
-Next, update your project's composer.json file to include ComparisonUtility:
+Next, update your project's composer.json file to include comparison-utility:
 
     {
         "repositories": [ { "type": "composer", "url": "http://packages.myseosolution.de/"} ],

@@ -1,8 +1,18 @@
-## 0.1.1
+#todo
+
+- docu
+
+#dev-master
+
+##0.1.2
+
+ - cleanup
+
+##0.1.1
 
  - updated repositories to local satis installation
 
-## 0.1.0
+##0.1.0
 
  - changed package name from ComparisonUtility to comparison-utility
 
